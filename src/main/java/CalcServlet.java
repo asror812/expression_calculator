@@ -25,10 +25,7 @@ public class CalcServlet extends HttpServlet {
         String body = request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual).trim();
 
         if (path.equals("/expression")) {
-            if (!isValidExpression(body)) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, invalidRequest);
-                return;
-            }
+
             boolean isNew = session.getAttribute("expression") == null;
             session.setAttribute("expression", body);
             response.setStatus(isNew ? HttpServletResponse.SC_CREATED : HttpServletResponse.SC_OK);
@@ -62,7 +59,7 @@ public class CalcServlet extends HttpServlet {
         if (path.equals("/result")) {
 
             String expression = (String) session.getAttribute("expression");
-            if (expression == null) {
+            if (expression == null || expression.isEmpty()) {
                 response.sendError(HttpServletResponse.SC_CONFLICT, "No expression set");
                 return;
             }
@@ -96,7 +93,7 @@ public class CalcServlet extends HttpServlet {
         }
     }
 
-    // Helper method to parse variable value
+
     private int parseVariableValue(String body, HttpSession session) throws NumberFormatException {
         if (body.matches("-?\\d+")) {
             return Integer.parseInt(body);
@@ -109,11 +106,6 @@ public class CalcServlet extends HttpServlet {
         } else {
             throw new NumberFormatException("Invalid format");
         }
-    }
-
-    // Helper method to check if an expression is valid
-    private boolean isValidExpression(String expression) {
-        return expression.matches("[a-z0-9+\\-*/() ]+");
     }
 
     // Helper method to collect variables from the session
