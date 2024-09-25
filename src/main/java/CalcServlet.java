@@ -113,7 +113,7 @@ public class CalcServlet extends HttpServlet {
 
     // Helper method to check if an expression is valid
     private boolean isValidExpression(String expression) {
-        return expression.matches("[a-z0-9\\+\\-\\*/\\(\\) ]+");
+        return expression.matches("[a-z0-9+\\-*/() ]+");
     }
 
     // Helper method to collect variables from the session
@@ -129,6 +129,7 @@ public class CalcServlet extends HttpServlet {
 
     // Expression evaluation logic (similar to the previous implementation)
     private int evaluateExpression(String expression, Map<String, Integer> variables) throws Exception {
+
         Parser parser = new Parser(variables);
         return parser.parse(expression);
     }

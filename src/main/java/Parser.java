@@ -1,3 +1,4 @@
+import java.security.InvalidParameterException;
 import java.util.Map;
 import java.util.Stack;
 
@@ -70,8 +71,9 @@ public class Parser {
                 case '/':
                     if (b == 0) throw new ArithmeticException("Cannot divide by zero");
                     return a / b;
+
+                default:throw new InvalidParameterException("Unrecognized operator: " + op);
             }
-            return 0;
         }
 
 }
