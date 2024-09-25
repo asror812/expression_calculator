@@ -127,7 +127,7 @@ public class CalcServlet extends HttpServlet {
         return variables;
     }
 
-    // Expression evaluation logic (similar to the previous implementation)
+
     private int evaluateExpression(String expression, Map<String, Integer> variables) throws Exception {
 
         Parser parser = new Parser(variables);
