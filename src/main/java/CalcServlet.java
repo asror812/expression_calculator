@@ -11,13 +11,14 @@ import java.util.Map;
 @WebServlet("/calc/*")
 public class CalcServlet extends HttpServlet {
 
+    private final String invalidRequest = "Invalid resource path";
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         String path = request.getPathInfo();
 
         if (path == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid resource path");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, invalidRequest);
             return;
         }
 
@@ -25,7 +26,7 @@ public class CalcServlet extends HttpServlet {
 
         if (path.equals("/expression")) {
             if (!isValidExpression(body)) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid expression format");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, invalidRequest);
                 return;
             }
             boolean isNew = session.getAttribute("expression") == null;
@@ -49,7 +50,7 @@ public class CalcServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid variable value format");
             }
         } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid resource path");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, invalidRequest);
         }
     }
 
@@ -59,7 +60,7 @@ public class CalcServlet extends HttpServlet {
         String path = request.getPathInfo();
 
         if (path.equals("/result")) {
-            // Calculate and return the result of the expression
+
             String expression = (String) session.getAttribute("expression");
             if (expression == null) {
                 response.sendError(HttpServletResponse.SC_CONFLICT, "No expression set");
@@ -74,7 +75,7 @@ public class CalcServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
             }
         } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid resource path");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, invalidRequest);
         }
     }
 
@@ -91,7 +92,7 @@ public class CalcServlet extends HttpServlet {
             session.removeAttribute(variableName);
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid resource path");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, invalidRequest);
         }
     }
 
