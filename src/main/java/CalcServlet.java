@@ -25,6 +25,10 @@ public class CalcServlet extends HttpServlet {
         String body = request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual).trim();
 
         if (path.equals("/expression")) {
+            if (!isValidExpression(body)) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid expression format");
+                return;
+            }
 
             boolean isNew = session.getAttribute("expression") == null;
             session.setAttribute("expression", body);
@@ -60,12 +64,26 @@ public class CalcServlet extends HttpServlet {
 
             String expression = (String) session.getAttribute("expression");
             if (expression == null || expression.isEmpty()) {
+
+
                 response.sendError(HttpServletResponse.SC_CONFLICT, "No expression set");
                 return;
             }
+
+            if(!isValidExpression(expression)) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid expression format");
+            }
+
+
             try {
                 Map<String, Integer> variables = getVariablesFromSession(session);
                 int result = evaluateExpression(expression, variables);
+
+                if (result < -10000 || result > 10000) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Result out of range");
+                    return;
+                }
+
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write(String.valueOf(result));
             } catch (Exception e) {
@@ -82,6 +100,7 @@ public class CalcServlet extends HttpServlet {
         String path = request.getPathInfo();
 
         if (path.equals("/expression")) {
+
             session.removeAttribute("expression");
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else if (path.matches("/[a-z]")) {
@@ -108,9 +127,9 @@ public class CalcServlet extends HttpServlet {
         }
     }
 
-    // Helper method to collect variables from the session
     private Map<String, Integer> getVariablesFromSession(HttpSession session) {
         Map<String, Integer> variables = new HashMap<>();
+
         session.getAttributeNames().asIterator().forEachRemaining(name -> {
             if (name.matches("[a-z]")) {
                 variables.put(name, (Integer) session.getAttribute(name));
@@ -124,5 +143,29 @@ public class CalcServlet extends HttpServlet {
 
         Parser parser = new Parser(variables);
         return parser.parse(expression);
+    }
+
+
+    private boolean isValidExpression(String expression) {
+
+        if (!expression.matches("[\\d\\s+\\-*/()a-z]+")) {
+            return false;
+        }
+
+        if (!checkBalancedParentheses(expression)) {
+            return false;
+        }
+
+        return !expression.matches(".*[+\\-*/]{2,}.*");
+    }
+
+    private boolean checkBalancedParentheses(String expression) {
+        int balance = 0;
+        for (char c : expression.toCharArray()) {
+            if (c == '(') balance++;
+            else if (c == ')') balance--;
+            if (balance < 0) return false;
+        }
+        return balance == 0;
     }
 }
